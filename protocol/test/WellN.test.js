@@ -8,7 +8,7 @@ const { TypeEncoder } = require('./utils/encoder.js');
 const { to6, to18 } = require('./utils/helpers.js');
 const { getEma } = require('./utils/ema.js');
 const { takeSnapshot, revertToSnapshot } = require("./utils/snapshot");
-const { toBN } = require('../utils/index.js');
+const { toBN } = require('../utils');
 const { readEmaAlpha } = require('../utils/read.js');
 
 let user,user2,owner;

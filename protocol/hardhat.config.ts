@@ -1,31 +1,42 @@
-require("@nomiclabs/hardhat-waffle")
-require("@nomiclabs/hardhat-ethers")
-require('hardhat-contract-sizer')
-require("hardhat-gas-reporter")
-require("solidity-coverage")
-require("@openzeppelin/hardhat-upgrades")
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-waffle";
+// import "@nomicfoundation/hardhat-toolbox";
+import 'hardhat-contract-sizer'
+import "hardhat-gas-reporter"
+import "solidity-coverage"
+import "@openzeppelin/hardhat-upgrades"
+
+import { HardhatUserConfig, task } from "hardhat/config";
+// import { ethers } from "hardhat"
+
 require('dotenv').config();
+import { impersonateSigner, mintUsdc, mintBeans, getBeanMetapool, getUsdc, getBean, getBeanstalkAdminControls, buyBuysInBeanEth, sellBeansInBeanEth, printPools } from './utils';
+
+///
 const fs = require('fs')
-const { impersonateSigner, mintUsdc, mintBeans, getBeanMetapool, getUsdc, getBean, getBeanstalkAdminControls, buyBuysInBeanEth, sellBeansInBeanEth, printPools, toBN } = require('./utils');
 const { EXTERNAL, INTERNAL, INTERNAL_EXTERNAL, INTERNAL_TOLERANT } = require('./test/utils/balances.js')
 const { PUBLIUS, BEAN_3_CURVE } = require('./test/utils/constants.js')  
 const { to6 } = require('./test/utils/helpers.js')
 const { replant } = require("./replant/replant.js")
 const { deployWells } = require("./scripts/wells.js")
 
-task('buyBeansCurve').addParam("amount", "The amount of USDC to buy with").setAction(async(args) => {
-  await mintUsdc(PUBLIUS, args.amount)
-  const signer = await impersonateSigner(PUBLIUS)
-  await (await getUsdc()).connect(signer).approve(BEAN_3_CURVE, ethers.constants.MaxUint256)
-  await (await getBeanMetapool()).connect(signer).exchange_underlying('2', '0', args.amount, '0')
-})
+task('testTask', async () => {
+  console.log('Worked!');
+});
 
-task('sellBeansCurve').addParam("amount", "The amount of Beans to sell").setAction(async(args) => {
-  await mintBeans(PUBLIUS, args.amount)
-  const signer = await impersonateSigner(PUBLIUS)
-  await (await getBean()).connect(signer).approve(BEAN_3_CURVE, ethers.constants.MaxUint256)
-  await (await getBeanMetapool()).connect(signer).connect(await impersonateSigner(PUBLIUS)).exchange_underlying('0', '2', args.amount, '0')
-})
+// task('buyBeansCurve').addParam("amount", "The amount of USDC to buy with").setAction(async(args) => {
+//   await mintUsdc(PUBLIUS, args.amount)
+//   const signer = await impersonateSigner(PUBLIUS)
+//   await (await getUsdc()).connect(signer).approve(BEAN_3_CURVE, ethers.constants.MaxUint256)
+//   await (await getBeanMetapool()).connect(signer).exchange_underlying('2', '0', args.amount, '0')
+// })
+
+// task('sellBeansCurve').addParam("amount", "The amount of Beans to sell").setAction(async(args) => {
+//   await mintBeans(PUBLIUS, args.amount)
+//   const signer = await impersonateSigner(PUBLIUS)
+//   await (await getBean()).connect(signer).approve(BEAN_3_CURVE, ethers.constants.MaxUint256)
+//   await (await getBeanMetapool()).connect(signer).connect(await impersonateSigner(PUBLIUS)).exchange_underlying('0', '2', args.amount, '0')
+// })
 
 task('ripen').addParam("amount", "The amount of Pods to ripen").setAction(async(args) => {
   const beanstalkAdmin = await getBeanstalkAdminControls()
@@ -83,7 +94,7 @@ task('diamondABI', 'Generates ABI file for diamond, includes all ABIs of facets'
   const basePath = '/contracts/farm/facets/'
   const libraryBasePath = '/contracts/farm/libraries/'
   let files = fs.readdirSync('.' + basePath)
-  let abi = []
+  let abi : any[] = []
   for (var file of files) {
     var file2
     var jsonFile
@@ -99,19 +110,19 @@ task('diamondABI', 'Generates ABI file for diamond, includes all ABIs of facets'
       abi.push(...json.abi)
     }
   }
-  abi = JSON.stringify(abi.filter((item, pos) => abi.map((a)=>a.name).indexOf(item.name) == pos), null, 4)
-  fs.writeFileSync('./abi/Beanstalk.json', abi)
+  const output = JSON.stringify(abi.filter((item, pos) => abi.map((a)=>a.name).indexOf(item.name) == pos), null, 4)
+  fs.writeFileSync('./abi/Beanstalk.json', output)
   console.log('ABI written to abi/Beanstalk.json')
 })
 
-module.exports = {
+const config : HardhatUserConfig = {
   defaultNetwork: "localhost",
   networks: {
     hardhat: {
       chainId: 1337,
       forking: process.env.FORKING_RPC ? {
         url: process.env.FORKING_RPC,
-        blockNumber: parseInt(process.env.BLOCK_NUMBER) || undefined
+        blockNumber: process.env.BLOCK_NUMBER ? parseInt(process.env.BLOCK_NUMBER) : undefined
       } : undefined,
       allowUnlimitedContractSize:true
     },
@@ -131,9 +142,9 @@ module.exports = {
       timeout: 100000
     },
   },
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_KEY
-  },
+  // etherscan: {
+  //   apiKey: process.env.ETHERSCAN_KEY || ''
+  // },
   solidity: {
     version: "0.7.6",
     settings: {
@@ -143,10 +154,12 @@ module.exports = {
       }
     }
   },
-  gasReporter: {
-    enabled: false
-  },
+  // gasReporter: {
+  //   enabled: false
+  // },
   mocha: {
     timeout: 100000000
   }
 }
+
+export default config;

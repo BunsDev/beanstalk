@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { deploy } = require('../scripts/deploy.js');
 const { getAltBeanstalk, getBean, getUsdc } = require('../utils/contracts.js');
-const { toBN } = require('../utils/index.js');
+const { toBN } = require('../utils');
 const { mintBeans, mintUsdc } = require('../utils/mint.js');
 const { readEmaAlpha } = require('../utils/read.js');
 const { EXTERNAL, INTERNAL, INTERNAL_EXTERNAL, INTERNAL_TOLERANT } = require('./utils/balances.js')
