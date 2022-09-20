@@ -75,6 +75,7 @@ contract Account {
         mapping(address => mapping(uint32 => uint256)) withdrawals; // A Farmer's Withdrawals from the Silo stored as a map from Token address to Season the Withdrawal becomes Claimable to Withdrawn amount of Tokens.
         SeasonOfPlenty sop; // A Farmer's Season Of Plenty storage.
         mapping(address => mapping(address => uint256)) depositAllowances; // Spender => Silo Token
+        mapping(bytes4 => mapping(address => bytes32)) functionApprovals; // function selector => delegatee => approval
     }
 }
 
