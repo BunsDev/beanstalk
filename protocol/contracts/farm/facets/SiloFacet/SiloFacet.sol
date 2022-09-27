@@ -8,6 +8,7 @@ pragma experimental ABIEncoderV2;
 import "./TokenSilo.sol";
 import "../../ReentrancyGuard.sol";
 import "../../../libraries/Token/LibTransfer.sol";
+import "../../../libraries/Silo/LibDelegate.sol";
 
 /*
  * @author Publius
@@ -16,6 +17,9 @@ import "../../../libraries/Token/LibTransfer.sol";
 contract SiloFacet is TokenSilo {
     using SafeMath for uint256;
     using LibSafeMath32 for uint32;
+
+    bytes4 public constant PLANT_DELEGATED_SELECTOR =
+        bytes4(keccak256(bytes("plantDelegated(address)")));
 
     /*
      * Deposit
@@ -142,6 +146,34 @@ contract SiloFacet is TokenSilo {
         require(currentAllowance >= subtractedValue, "Silo: decreased allowance below zero");
         _approveDeposit(msg.sender, spender, token, currentAllowance.sub(subtractedValue));
         return true;
+    }
+
+    /**
+     * @notice plant on behalf of account
+     * @param account user address
+     */
+    function plantDelegated(address account)
+        external
+        payable
+        returns (uint256 beans, uint256 allowance)
+    {
+        allowance = LibDelegate.getAllowance(
+            account,
+            PLANT_DELEGATED_SELECTOR,
+            msg.sender
+        );
+        if (allowance == 0) revert("DelegateFacet: unauthorized");
+
+        beans = _plant(account);
+        if (allowance < beans) revert("DelegateFacet: not enough allowance");
+        allowance -= beans;
+
+        LibDelegate.spendAllowance(
+            account,
+            PLANT_DELEGATED_SELECTOR,
+            msg.sender,
+            beans
+        );
     }
 
     /*
